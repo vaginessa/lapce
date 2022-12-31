@@ -40,18 +40,18 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Build
-        if: matrix.features == NaN
+        if: ${{ toJSON(matrix.features) == '[]' }}
         run: cargo build
 
       - name: Build
-        if: matrix.features != NaN
+        if: ${{ toJSON(matrix.features) != '[]' }}
         run: cargo build --features ${{ join(matrix.features, ',') }}
 
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
 
       - name: Run tests and coverage
-        if: ${{ matrix.features == null }}
+        if: ${{ toJSON(matrix.features) == '[]' }}
         run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
 
       - name: Run doc tests
