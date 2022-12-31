@@ -18,6 +18,8 @@ jobs:
         os: [ ubuntu-latest, windows-latest, macos-latest ]
         include:
           - os: windows-latest
+            features: []
+          - os: windows-latest
             features: 
               - lapce-ui/portable
     runs-on: ${{ matrix.os }}
@@ -38,11 +40,11 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Build
-        if: ${{ matrix.features == null }}
+        if: matrix.features == NaN
         run: cargo build
 
       - name: Build
-        if: ${{ matrix.features != null }}
+        if: matrix.features != NaN
         run: cargo build --features ${{ join(matrix.features, ',') }}
 
       - name: Install cargo-llvm-cov
