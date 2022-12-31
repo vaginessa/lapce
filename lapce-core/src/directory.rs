@@ -7,15 +7,21 @@ pub struct Directory {}
 
 impl Directory {
     #[cfg(any(
-        not(target_os = "windows"),
-        all(target_os = "windows", not(feature = "portable"))
+        all(not(target_os = "windows"), not(target_os = "darwin")),
+        all(
+            any(target_os = "windows", target_os = "darwin"),
+            not(feature = "portable")
+        )
     ))]
     fn project_dirs() -> Option<ProjectDirs> {
         ProjectDirs::from("dev", "lapce", &NAME)
     }
 
     /// Return path adjacent to lapce executable when built as portable
-    #[cfg(all(target_os = "windows", feature = "portable"))]
+    #[cfg(all(
+        any(target_os = "windows", target_os = "darwin"),
+        feature = "portable"
+    ))]
     fn project_dirs() -> Option<ProjectDirs> {
         if let Ok(current_exe) = std::env::current_exe() {
             if let Some(parent) = current_exe.parent() {

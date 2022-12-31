@@ -40,11 +40,11 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Build
-        if: ${{ toJSON(matrix.features) == '[]' }}
+        if: ${{ toJSON(matrix.features) == '{}' }}
         run: cargo build
 
       - name: Build
-        if: ${{ toJSON(matrix.features) != '[]' }}
+        if: ${{ toJSON(matrix.features) != '{}' }}
         run: cargo build --features ${{ join(matrix.features, ',') }}
 
       - name: Install cargo-llvm-cov
