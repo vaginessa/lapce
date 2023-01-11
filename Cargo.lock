@@ -2786,6 +2786,7 @@ dependencies = [
  "itertools",
  "lapce-core",
  "lapce-data",
+ "lapce-proxy",
  "lapce-rpc",
  "lapce-xi-rope",
  "log 0.4.17",

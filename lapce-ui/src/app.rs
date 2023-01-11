@@ -1,6 +1,6 @@
 #[cfg(target_os = "windows")]
 use std::os::windows::process::CommandExt;
-use std::{path::PathBuf, process::Stdio, sync::Arc};
+use std::{process::Stdio, sync::Arc};
 
 use clap::Parser;
 use druid::{
@@ -37,10 +37,22 @@ struct Cli {
     /// Launch new window even if Lapce is already running
     #[clap(short, long, action)]
     new: bool,
+
     /// Don't return instantly when opened in terminal
     #[clap(short, long, action)]
     wait: bool,
-    paths: Vec<PathBuf>,
+
+    // TODO: Implement `lapce +line file` syntax
+    // /// Optional vi-like syntax to open file on specific line
+    // #[clap(value_name = "+LINE", value_parser = lapce_proxy::cli::parse_vi_like_syntax)]
+    // line: Option<usize>,
+    //
+    /// Paths to file(s) and/or folder(s) to open.
+    /// When path is a file (that exists or not),
+    /// it accepts `path:line:column` syntax
+    /// to specify line and column at which it should open the file
+    #[clap(value_parser = lapce_proxy::cli::parse_file_line_column, value_hint = clap::ValueHint::AnyPath)]
+    paths: Vec<lapce_proxy::cli::PathObject>,
 }
 
 pub fn build_window(data: &mut LapceWindowData) -> impl Widget<LapceData> {
@@ -73,14 +85,36 @@ pub fn launch() {
         };
         return;
     }
-    let pwd = std::env::current_dir().unwrap_or_default();
-    let paths: Vec<PathBuf> = cli
-        .paths
-        .iter()
-        .map(|p| pwd.join(p).canonicalize().unwrap_or_default())
-        .collect();
-    if !cli.new && LapceData::try_open_in_existing_process(&paths).is_ok() {
-        return;
+
+    let paths = cli.paths;
+    // TODO: Implement `lapce +line file` syntax
+    // let paths = if let Some(line) = cli.line {
+    //     let Some(path) = cli.paths.get(0) else {
+    //         log::error!("Missing path");
+    //         exit(1);
+    //     };
+    //     if !path.path.is_file() && !path.path.is_symlink() {
+    //         log::error!("Path needs to be a file");
+    //         exit(1);
+    //     }
+    //     vec![lapce_proxy::cli::PathObject::from(
+    //         path.path.to_owned(),
+    //         line,
+    //         1,
+    //     )]
+    // } else {
+    //     cli.paths
+    // };
+
+    dbg!(&paths);
+
+    if !cli.new {
+        if let Ok(socket) = LapceData::get_socket() {
+            if let Err(e) = LapceData::try_open_in_existing_process(socket, &paths) {
+                log::error!("{e}");
+            };
+            return;
+        }
     }
 
     #[cfg(feature = "updater")]
